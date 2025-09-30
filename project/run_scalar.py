@@ -12,15 +12,24 @@ class Network(minitorch.Module):
         super().__init__()
         # ASSIGN1.5
         # Submodules
+        # self.layer1 = Linear(2, hidden_layers)
+        # self.layer2 = Linear(hidden_layers, hidden_layers)
+        # self.layer3 = Linear(hidden_layers, 1)
         self.layer1 = Linear(2, hidden_layers)
         self.layer2 = Linear(hidden_layers, hidden_layers)
-        self.layer3 = Linear(hidden_layers, 1)
+        # self.layer3 = Linear(hidden_layers, hidden_layers)
+        self.layer4 = Linear(hidden_layers, 1)
+        
         # END ASSIGN1.5
 
     def forward(self, x):
-        middle = [h.relu() for h in self.layer1.forward(x)]
-        end = [h.relu() for h in self.layer2.forward(middle)]
-        return self.layer3.forward(end)[0].sigmoid()
+        # middle = [h.relu() for h in self.layer1.forward(x)]
+        # end = [h.relu() for h in self.layer2.forward(middle)]
+        # return self.layer3.forward(end)[0].sigmoid()
+        out = [h.relu() for h in self.layer1.forward(x)]
+        out = [h.relu() for h in self.layer2.forward(out)]
+        # out = [h.relu() for h in self.layer3.forward(out)]
+        return self.layer4.forward(out)[0].sigmoid()
 
 
 class Linear(minitorch.Module):
@@ -108,9 +117,23 @@ class ScalarTrain:
                 log_fn(epoch, total_loss, correct, losses)
 
 
+# if __name__ == "__main__":
+#     PTS = 50
+#     HIDDEN = 2
+#     RATE = 0.5
+#     data = minitorch.datasets["Simple"](PTS)
+#     ScalarTrain(HIDDEN).train(data, RATE)
+
+
 if __name__ == "__main__":
+    # PTS = 50
+    # HIDDEN = 8
+    # RATE = 0.1
+    # data = minitorch.datasets["Simple"](PTS)
+    # ScalarTrain(HIDDEN).train(data, RATE)
     PTS = 50
-    HIDDEN = 2
+    data = minitorch.datasets["Split"](PTS)
+
+    HIDDEN = 4
     RATE = 0.5
-    data = minitorch.datasets["Simple"](PTS)
     ScalarTrain(HIDDEN).train(data, RATE)

@@ -22,8 +22,14 @@ def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) 
     Returns:
         An approximation of $f'_i(x_0, \ldots, x_{n-1})$
     """
-    # TODO: Implement for Task 1.1.
-    raise NotImplementedError('Need to implement for Task 1.1')
+    vals_plus_eps = list(vals)
+    vals_plus_eps[arg] += epsilon
+
+    vals_minus_eps = list(vals)
+    vals_minus_eps[arg] -= epsilon
+    return (f(*vals_plus_eps) - f(*vals_minus_eps)) / (2 * epsilon)
+
+
 
 
 variable_count = 1
@@ -61,8 +67,25 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
     Returns:
         Non-constant Variables in topological order starting from the right.
     """
-    # TODO: Implement for Task 1.4.
-    raise NotImplementedError('Need to implement for Task 1.4')
+    visited = set()
+    topological_order = []
+
+    def dfs(variable_: Variable):
+        if variable_.unique_id in visited:
+            return
+        if variable_.is_constant():
+            return
+        visited.add(variable_.unique_id)
+        for parent in variable_.parents:
+            dfs(parent)
+        topological_order.append(variable_)
+    
+    dfs(variable)
+    topological_order = topological_order[::-1]
+    return topological_order # from output to inputs
+    
+
+
 
 
 def backpropagate(variable: Variable, deriv: Any) -> None:
@@ -76,9 +99,24 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
 
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
-    # TODO: Implement for Task 1.4.
-    raise NotImplementedError('Need to implement for Task 1.4')
+    topological_order = topological_sort(variable)
 
+    node_derivative = {}
+    node_derivative[variable.unique_id] = deriv
+
+    for cur_node in topological_order:
+        cur_deriv = node_derivative.get(cur_node.unique_id, 0.0)
+
+        if not cur_node.is_leaf():
+            # cur_node.chain_rule(cur_deriv), cur_node = u + z
+            # -> [(u, d(cur_node)/d(u) * cur_deriv ),    (z, d(cur_node)/d(z) * cur_deriv )] 
+            for input, deriv_ in cur_node.chain_rule(cur_deriv): 
+                prev = node_derivative.get(input.unique_id, 0.0)
+                node_derivative[input.unique_id] = prev + deriv_
+
+        else:
+            cur_node.accumulate_derivative(cur_deriv)
+            continue
 
 @dataclass
 class Context:
